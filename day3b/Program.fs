@@ -3,9 +3,8 @@ open System.IO;
 open System.Linq;
 open FSharp.Collections;
 
-
 let scoreChar (c: char): int =
-  let n = int c
+  let n: int = int c
   if Char.IsUpper c then
     n - int 'A' + 27
   else
@@ -13,16 +12,12 @@ let scoreChar (c: char): int =
 
 
 let findDuplicate (lines: string[]): char =
-  let firstLine = lines[0]
-
-  let otherLines: seq<Set<char>> = 
-    lines[1..]
+  let duplicates: Set<char> = 
+    lines 
     |> Seq.map Set.ofSeq
+    |> Set.intersectMany
 
-  let isCharInAllOtherLines (c: char): bool =
-    otherLines.All (fun (line: Set<char>) -> line.Contains c)
-
-  firstLine.First isCharInAllOtherLines
+  duplicates.ToArray().First()
 
 
 let scoreGroup (lines: string[]): int =
@@ -30,16 +25,12 @@ let scoreGroup (lines: string[]): int =
   scoreChar duplicate
 
 
-let rec findTotalScore (lines: string[]): int =
-  if lines.Length = 0 then
-    0
-  else
-    let currentScore: int = scoreGroup lines[..2]
-    currentScore + findTotalScore lines[3..] 
-
-
 // Main
 let lines: string[] = File.ReadAllLines("./input.txt");
-let score: int = findTotalScore lines
-printfn $"{score}"
+let groups: string[][] = Array.splitInto (lines.Length / 3) lines  
+let score: int = 
+  groups
+  |> Seq.map scoreGroup
+  |> Seq.sum
 
+printfn $"{score}"
